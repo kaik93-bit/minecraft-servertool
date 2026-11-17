@@ -1,0 +1,21 @@
+{
+  "name": "minecraft-servertool",
+  "version": "1.0.0",
+  "description": "Web-Oberfläche zum Steuern eines lokalen Minecraft-Servers (Start/Stop, Konsole, Mods, Backups)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "app": "node server.js --detach",
+    "release": "node scripts/release.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "archiver": "^7.0.1",
+    "express": "^4.21.2",
+    "multer": "^2.0.2",
+    "ws": "^8.18.0"
+  },
+  "updateRepo": "kaik93-bit/minecraft-servertool"
+}

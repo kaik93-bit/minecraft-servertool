@@ -1,0 +1,8 @@
+node_modules/
+node/
+config.json
+backups/
+data/
+tool.log
+dist/
+*.code-workspace
