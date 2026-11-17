@@ -76,7 +76,7 @@ async function buildPackage(version) {
   sh('git', ['add', '-A']);
   if (sh('git', ['status', '--porcelain'])) sh('git', ['commit', '-q', '-m', `Version ${version}\n\n${notes}`]);
   sh('git', ['tag', `v${version}`]);
-  sh('git', ['push', '-q', '--follow-tags', 'origin', 'HEAD']);
+  sh('git', ['push', '-q', 'origin', 'HEAD', `refs/tags/v${version}`]);
 
   const zip = await buildPackage(version);
   sh('gh', ['release', 'create', `v${version}`, zip, '--title', `Version ${version}`, '--notes', notes]);
