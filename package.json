@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "app": "node server.js --detach",
-    "release": "node scripts/release.js"
+    "release": "node scripts/release.js",
+    "mod-release": "node scripts/mod-release.js"
   },
   "engines": {
     "node": ">=18"
@@ -17,5 +18,6 @@
     "multer": "^2.0.2",
     "ws": "^8.18.0"
   },
-  "updateRepo": "kaik93-bit/minecraft-servertool"
+  "updateRepo": "kaik93-bit/minecraft-servertool",
+  "modsRepo": "kaik93-bit/minecraft-mods"
 }

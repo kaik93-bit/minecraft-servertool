@@ -308,3 +308,27 @@ table thead th { font-size: .7rem; font-weight: 600; text-transform: uppercase; 
 /* Overlays (Spieler-Fenster, Dialog, Beenden) */
 #playerModal, #dialogOverlay, #offlineOverlay { backdrop-filter: blur(6px); }
 #playerModal .card { box-shadow: 0 30px 80px -20px rgba(0,0,0,.8); }
+
+/* ---------- Eigene Mods von GitHub ---------- */
+.cat-item {
+  display: flex; flex-direction: column;
+  padding: .9rem 1rem; border-radius: 12px;
+  background: rgba(255,255,255,.025); border: 1px solid rgba(255,255,255,.07);
+  transition: border-color .15s, background .15s;
+}
+.cat-item:hover { border-color: rgba(16,185,129,.35); background: rgba(16,185,129,.04); }
+.mod-tag {
+  font-size: .68rem; padding: .1rem .45rem; border-radius: 999px;
+  background: rgba(255,255,255,.06); color: #a1a7b3; border: 1px solid rgba(255,255,255,.06);
+}
+.mod-badge {
+  display: inline-block; font-size: .7rem; font-weight: 600; padding: .12rem .5rem; border-radius: 999px;
+  background: rgba(255,255,255,.06); color: #a1a7b3; border: 1px solid transparent; white-space: nowrap;
+}
+.mod-badge.ok { color: #6ee7b7; background: rgba(16,185,129,.1); }
+.mod-badge.info { color: #7dd3fc; background: rgba(14,165,233,.12); border-color: rgba(14,165,233,.3); }
+button.mod-badge.update {
+  color: #fde68a; background: rgba(245,158,11,.14); border-color: rgba(245,158,11,.4); cursor: pointer;
+}
+button.mod-badge.update:hover { background: rgba(245,158,11,.25); }
+button.mod-badge.update:disabled { opacity: .5; cursor: wait; }

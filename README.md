@@ -25,6 +25,20 @@ Das Tool aktualisiert sich **von selbst**:
 
 Unter **Einstellungen → Updates** kannst du automatische Updates abschalten, selbst nach Updates suchen oder ein Update sofort installieren.
 
+## Eigene Mods von GitHub
+
+Im Bereich **Mods** zeigt die Karte **„Meine Mods auf GitHub“** alle Mods aus [kaik93-bit/minecraft-mods](https://github.com/kaik93-bit/minecraft-mods):
+- **Noch nicht installierte** Mods stehen dort mit Beschreibung. Ein Klick auf **Installieren** genügt; aktiv werden sie nach dem nächsten Server-Neustart.
+- Das Tool sucht **alle 5 Minuten** nach neuen Versionen. Installierte Mods zeigen „✓ aktuell“ oder „⬆ Update auf x.y“.
+- **Automatische Updates** (an/aus):
+  - Ist der Server aus, wird die neue Version sofort eingespielt.
+  - Läuft er, wird sie heruntergeladen und beim nächsten Start bzw. Stopp installiert, weil Windows geladene Mods sperrt.
+  - Die alte Version wird in `data/mod-backups` gesichert.
+  - Deaktivierte Mods bleiben deaktiviert.
+- Andere Mods (nicht aus diesem Katalog) werden nie angefasst.
+
+Bei Mods mit „👥 auch für Spieler“ brauchen die Spieler dieselbe Version im eigenen Minecraft. „🖥 nur Server“-Mods brauchen sie nicht.
+
 ## Funktionen
 
 - **Server**: starten, sicher stoppen, neu starten, notfalls hart beenden
@@ -74,6 +88,14 @@ Das Skript:
 - baut das Komplettpaket inklusive Node.js
 - erstellt das GitHub-Release
 
+**Eigene Mod veröffentlichen.** Vorher `mod_version` erhöhen und die Mod bauen:
+
+```
+npm run mod-release -- "..VeinMinex" "Was ist neu"
+```
+
+Das Skript liest ID, Name und Version aus der `.jar` (bei einem Ordner die neueste aus `build/libs`) und erstellt das Release in `minecraft-mods`. Alle Servertools finden die neue Version innerhalb von 5 Minuten.
+
 Benötigt sind `git` und die GitHub-CLI (`gh`), eingeloggt. Im Entwicklungsordner (mit `.git`) installiert das Tool selbst keine Updates.
 
 ```
@@ -89,6 +111,8 @@ Benötigt sind `git` und die GitHub-CLI (`gh`), eingeloggt. Im Entwicklungsordne
 │   ├── perf.js              # Ping/TPS/MSPT
 │   ├── mods.js, backups.js
 │   ├── updater.js           # Update-Suche & Download (GitHub-Releases)
+│   ├── modCatalog.js        # eigene Mods von GitHub: Katalog, Updates, Installation
+│   ├── jarinfo.js           # liest Mod-ID/Version aus .jar-Dateien
 │   ├── updateGuard.js       # tauscht Dateien beim Update, stellt bei Fehlern wieder her
 │   └── dialog.js, explorer.js, appWindow.js, config.js
 ├── public/                  # Oberfläche

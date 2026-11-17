@@ -65,6 +65,7 @@ const dialog = require('./lib/dialog');
 const { openFolder } = require('./lib/explorer');
 const { openAppWindow } = require('./lib/appWindow');
 const updater = require('./lib/updater');
+const modCatalog = require('./lib/modCatalog');
 
 config.load();
 
@@ -308,6 +309,13 @@ app.get('/api/tool/version', (req, res) => {
   res.json({ version: updater.VERSION, outdated: codeFingerprint() !== STARTUP_FINGERPRINT });
 });
 
+// ---------------- Eigene Mods von GitHub ----------------
+app.get('/api/mod-updates', route(async (req, res) => res.json(modCatalog.status())));
+app.post('/api/mod-updates/check', route(async (req, res) => res.json(await modCatalog.check({ manual: true }))));
+app.post('/api/mod-updates/:id/update', route(async (req, res) => res.json(await modCatalog.update(req.params.id))));
+app.post('/api/mod-updates/:id/install', route(async (req, res) => res.json(await modCatalog.install(req.params.id))));
+app.put('/api/mod-updates/settings', route(async (req, res) => res.json(modCatalog.setAuto((req.body || {}).auto !== false))));
+
 // ---------------- Updates (GitHub) ----------------
 app.get('/api/update', (req, res) => res.json(updater.status()));
 app.post('/api/update/check', route(async (req, res) => res.json(await updater.check({ manual: true }))));
@@ -361,6 +369,7 @@ wss.on('connection', (ws) => {
   ws.send(JSON.stringify({ type: 'update', ...updater.status() }));
 });
 mc.on('update', (u) => broadcast({ type: 'update', ...u }));
+mc.on('mod-updates', (m) => broadcast({ type: 'mod-updates', ...m }));
 
 mc.on('log', (line) => broadcast({ type: 'log', line }));
 mc.on('status', (state) => broadcast({ type: 'status', ...state }));
@@ -392,6 +401,7 @@ server.on('error', (err) => {
 server.listen(PORT, HOST, () => {
   console.log(`Minecraft Servertool läuft auf ${APP_URL}`);
   if (OPEN_WINDOW) openAppWindow(APP_URL);
+  modCatalog.init();
   updater.init({
     requestShutdown: (opts) => shutdown(opts),
     playersOnline: () => mc.online.size,

@@ -458,6 +458,10 @@ function connectWs() {
       renderPerf(msg);
     } else if (msg.type === 'autorestart') {
       setAutoRestart(msg);
+    } else if (msg.type === 'mod-updates') {
+      const before = JSON.stringify((catalog || {}).mods || []);
+      renderCatalog(msg);
+      if (state.currentTab === 'mods' && before !== JSON.stringify(msg.mods)) loadMods();
     } else if (msg.type === 'update') {
       renderUpdate(msg);
     } else if (msg.type === 'shutdown') {
@@ -1285,6 +1289,7 @@ window.addEventListener('beforeunload', (e) => {
 
 // ---------------- Mods ----------------
 async function loadMods() {
+  api('GET', '/api/mod-updates').then(renderCatalog).catch(() => {});
   try {
     const data = await api('GET', '/api/mods');
     state.mods = data.mods;
@@ -1302,7 +1307,7 @@ function renderMods() {
   const q = $('#modSearch').value.trim().toLowerCase();
   const filter = $('#modFilter').value;
   const visible = state.mods.filter(
-    (m) => (!q || m.name.toLowerCase().includes(q)) && (filter === 'all' || (filter === 'enabled') === m.enabled)
+    (m) => (!q || m.name.toLowerCase().includes(q) || (m.displayName || '').toLowerCase().includes(q)) && (filter === 'all' || (filter === 'enabled') === m.enabled)
   );
   const active = state.mods.filter((m) => m.enabled).length;
   $('#modCount').textContent = `${active} aktiv · ${state.mods.length - active} deaktiviert`;
@@ -1312,7 +1317,7 @@ function renderMods() {
         .map(
           (m) => `<tr class="${m.enabled ? '' : 'off'}">
           <td><button class="switch ${m.enabled ? 'on' : ''}" data-toggle="${esc(m.name)}" data-enabled="${m.enabled}" title="${m.enabled ? 'Deaktivieren' : 'Aktivieren'}"></button></td>
-          <td class="name font-mono break-all pr-4">${esc(m.name)}</td>
+          <td class="name pr-4">${modNameCell(m)}</td>
           <td class="text-right text-zinc-400">${fmtSize(m.size)}</td>
           <td class="text-right text-zinc-400">${fmtDate(m.modified)}</td>
           <td class="text-right"><button class="btn btn-ghost btn-sm text-red-400" data-delete="${esc(m.name)}" data-enabled="${m.enabled}" title="Löschen">🗑</button></td>
@@ -1332,6 +1337,98 @@ document.addEventListener('click', async (e) => {
     toast(/404/.test(err.message) ? 'Diese Funktion ist erst nach einem Neustart des Tools verfügbar (blauer Hinweis oben).' : err.message, 'err');
   }
 });
+
+// ---------- Eigene Mods von GitHub ----------
+let catalog = null;
+const catalogFor = (id) => (catalog && id ? catalog.mods.find((c) => c.id === id) : null);
+
+function modNameCell(m) {
+  const c = catalogFor(m.modId);
+  let badge = '';
+  if (c && c.busy) badge = '<span class="mod-badge">⏳ lädt …</span>';
+  else if (c && c.pendingVersion) badge = `<span class="mod-badge info" title="Wird automatisch eingespielt, sobald der Server gestoppt bzw. neu gestartet wird">⏳ ${esc(c.pendingVersion)} beim nächsten Start</span>`;
+  else if (c && c.updateAvailable) badge = `<button class="mod-badge update" data-mod-update="${esc(c.id)}" title="${esc(c.notes || '')}">⬆ Update auf ${esc(c.version)}</button>`;
+  else if (c) badge = '<span class="mod-badge ok" title="Aktuellste Version von GitHub">✓ aktuell</span>';
+  const title = m.displayName
+    ? `<span class="font-medium text-zinc-100">${esc(m.displayName)}</span> <span class="text-zinc-500 font-mono text-xs">${esc(m.version || '')}</span>`
+    : `<span class="font-mono break-all">${esc(m.name)}</span>`;
+  return `<div class="flex flex-wrap items-center gap-2">${title}${badge}</div>${m.displayName ? `<div class="text-[11px] text-zinc-600 font-mono break-all">${esc(m.name)}</div>` : ''}`;
+}
+
+function renderCatalog(d) {
+  catalog = d;
+  $('#catAuto').classList.toggle('on', !!d.auto);
+  const t = d.checkedAt ? new Date(d.checkedAt).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) : null;
+  $('#catStatus').textContent =
+    d.status === 'checking' ? 'Prüfe …' : d.status === 'error' ? `⚠ ${d.error}` : t ? `geprüft ${t} Uhr · alle ${d.intervalMin} Min.` : 'noch nicht geprüft';
+  $('#catCheck').disabled = d.status === 'checking';
+
+  const pend = d.mods.filter((m) => m.pendingVersion);
+  $('#catPending').classList.toggle('hidden', !pend.length);
+  if (pend.length) {
+    $('#catPending').innerHTML = `⏳ ${pend.map((m) => `<b>${esc(m.name)} ${esc(m.pendingVersion)}</b>`).join(', ')} ${pend.length === 1 ? 'ist' : 'sind'} heruntergeladen und ${pend.length === 1 ? 'wird' : 'werden'} beim nächsten Server-Start bzw. sobald der Server gestoppt ist installiert.`;
+  }
+
+  const missing = d.mods.filter((m) => !m.installed);
+  $('#catList').innerHTML = !d.repo
+    ? '<p class="text-sm text-zinc-500">Keine Mod-Quelle eingestellt.</p>'
+    : missing.length
+      ? missing
+          .map(
+            (m) => `<div class="cat-item">
+        <div class="flex items-start gap-2">
+          <div class="flex-1 min-w-0">
+            <div class="font-semibold text-zinc-100">${esc(m.name)} <span class="text-xs font-mono text-zinc-500">${esc(m.version)}</span></div>
+            <div class="flex flex-wrap gap-1.5 mt-1.5">
+              ${m.mc ? `<span class="mod-tag">MC ${esc(m.mc)}</span>` : ''}
+              ${m.loader ? `<span class="mod-tag">${esc(m.loader === 'neoforge' ? 'NeoForge' : m.loader === 'fabric' ? 'Fabric' : 'Forge')}</span>` : ''}
+              <span class="mod-tag" title="${m.serverOnly ? 'Spieler können ohne diese Mod joinen' : 'Spieler brauchen diese Mod ebenfalls'}">${m.serverOnly ? '🖥 nur Server' : '👥 auch für Spieler'}</span>
+            </div>
+          </div>
+        </div>
+        <p class="text-xs text-zinc-400 mt-2 flex-1">${esc(m.description || m.notes || '')}</p>
+        ${m.compatible ? '' : `<p class="text-xs text-amber-400 mt-2">⚠ Passt evtl. nicht zu deinem Server (${esc([d.server.loader, d.server.mcVersion].filter(Boolean).join(' '))}).</p>`}
+        <button class="btn btn-green btn-sm mt-3 self-start" data-mod-install="${esc(m.id)}" ${m.busy ? 'disabled' : ''}>${m.busy ? '⏳ Wird installiert …' : '⬇ Installieren'}</button>
+      </div>`
+          )
+          .join('')
+      : `<p class="text-sm text-zinc-500">${d.mods.length ? '✅ Alle Mods von GitHub sind installiert.' : d.status === 'ok' ? 'Auf GitHub sind noch keine Mods veröffentlicht.' : '–'}</p>`;
+  if (state.mods) renderMods();
+}
+
+document.addEventListener('click', async (e) => {
+  const inst = e.target.closest('[data-mod-install]');
+  const upd = e.target.closest('[data-mod-update]');
+  if (!inst && !upd) return;
+  const id = (inst || upd).dataset.modInstall || (inst || upd).dataset.modUpdate;
+  (inst || upd).disabled = true;
+  try {
+    const r = await api('POST', `/api/mod-updates/${encodeURIComponent(id)}/${inst ? 'install' : 'update'}`);
+    renderCatalog(r);
+    const m = r.mods.find((x) => x.id === id);
+    if (inst) toast(`${m.name} installiert.${r.restartRequired ? ' Aktiv nach dem nächsten Server-Neustart.' : ''}`, 'ok');
+    else toast(m.pendingVersion ? `${m.name} ${m.pendingVersion} wird beim nächsten Server-Start installiert.` : `${m.name} auf ${m.version} aktualisiert.`, 'ok');
+    loadMods();
+  } catch (err) {
+    toast(err.message, 'err');
+    (inst || upd).disabled = false;
+  }
+});
+$('#catCheck').onclick = async () => {
+  try {
+    renderCatalog(await api('POST', '/api/mod-updates/check'));
+    loadMods();
+  } catch (err) {
+    toast(err.message, 'err');
+  }
+};
+$('#catAuto').onclick = async () => {
+  try {
+    renderCatalog(await api('PUT', '/api/mod-updates/settings', { auto: !(catalog && catalog.auto) }));
+  } catch (err) {
+    toast(err.message, 'err');
+  }
+};
 
 $('#modSearch').addEventListener('input', renderMods);
 $('#modFilter').addEventListener('change', renderMods);
