@@ -366,7 +366,7 @@
           </div>
         </div>
         <div id="catPending" class="hidden mt-4 rounded-lg border border-sky-700/60 bg-sky-900/20 px-3 py-2 text-sm text-sky-200"></div>
-        <p class="hint mt-2">Das Tool prüft alle 5 Minuten, ob es neue Versionen gibt. Heruntergeladen und installiert wird nur per Klick.</p>
+        <p class="hint mt-2">Das Tool prüft alle 5 Minuten, ob es neue Versionen gibt. Installiert wird per Klick – oder automatisch, wenn das unter <a href="#settings" class="underline">Einstellungen → Updates</a> eingeschaltet ist.</p>
         <div id="catUpdates" class="hidden mt-4"></div>
         <h3 class="text-sm font-semibold text-zinc-300 mt-5 mb-3">Noch nicht installiert</h3>
         <div id="catList" class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3"></div>
@@ -460,7 +460,17 @@
           <button type="button" id="upCheck" class="btn btn-ghost">🔍 Nach Updates suchen</button>
           <button type="button" id="upInstall" class="btn btn-green hidden">⬇ Jetzt aktualisieren</button>
         </div>
-        <p class="hint mt-3">Das Tool prüft regelmäßig, ob es eine neue Version gibt, lädt aber nichts selbst herunter. Installiert wird nur, wenn du auf „Jetzt aktualisieren“ klickst. Läuft der Server, wird er dafür sicher gestoppt und danach wieder gestartet. Deine Einstellungen und Backups bleiben erhalten.</p>
+        <div class="mt-5 pt-4 border-t border-white/5">
+          <div class="flex items-start gap-3">
+            <button type="button" id="auEnabled" class="switch mt-0.5" title="Updates automatisch installieren"></button>
+            <div class="flex-1">
+              <div class="font-medium text-zinc-100">Updates automatisch installieren</div>
+              <p class="text-sm text-zinc-400 mt-0.5">Ist der Server <b>3 Minuten leer</b>, werden verfügbare Updates eingespielt: <b>zuerst Mods</b>, danach das Servertool. Der Minecraft-Server wird dafür sicher gestoppt und startet danach automatisch wieder.</p>
+              <p id="auInfo" class="text-sm mt-2"></p>
+            </div>
+          </div>
+        </div>
+        <p class="hint mt-4">Geprüft wird immer: <b>Mods alle 5 Minuten</b>, <b>Servertool alle 10 Minuten</b>. Ist die Automatik aus, wird nur angezeigt – installiert wird dann per Klick. Einstellungen, Welten und Backups bleiben bei Updates erhalten.</p>
       </div>
       <form id="settingsForm" class="card space-y-5 max-w-3xl">
         <h2 class="card-title">Konfiguration</h2>

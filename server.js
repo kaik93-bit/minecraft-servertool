@@ -66,6 +66,7 @@ const { openFolder } = require('./lib/explorer');
 const { openAppWindow } = require('./lib/appWindow');
 const updater = require('./lib/updater');
 const modCatalog = require('./lib/modCatalog');
+const autoUpdate = require('./lib/autoUpdate');
 
 config.load();
 
@@ -309,6 +310,10 @@ app.get('/api/tool/version', (req, res) => {
   res.json({ version: updater.VERSION, outdated: codeFingerprint() !== STARTUP_FINGERPRINT });
 });
 
+// ---------------- Automatische Updates (Einstellung) ----------------
+app.get('/api/auto-update', route(async (req, res) => res.json(autoUpdate.status())));
+app.put('/api/auto-update', route(async (req, res) => res.json(autoUpdate.setEnabled(!!(req.body || {}).enabled))));
+
 // ---------------- Eigene Mods von GitHub ----------------
 app.get('/api/mod-updates', route(async (req, res) => res.json(modCatalog.status())));
 app.post('/api/mod-updates/check', route(async (req, res) => res.json(await modCatalog.check({ manual: true }))));
@@ -367,9 +372,15 @@ wss.on('connection', (ws) => {
     /* kein Server ausgewählt */
   }
   ws.send(JSON.stringify({ type: 'update', ...updater.status() }));
+  try {
+    ws.send(JSON.stringify({ type: 'auto-update', ...autoUpdate.status() }));
+  } catch (_) {
+    /* egal */
+  }
 });
 mc.on('update', (u) => broadcast({ type: 'update', ...u }));
 mc.on('mod-updates', (m) => broadcast({ type: 'mod-updates', ...m }));
+mc.on('auto-update', (a) => broadcast({ type: 'auto-update', ...a }));
 
 mc.on('log', (line) => broadcast({ type: 'log', line }));
 mc.on('status', (state) => broadcast({ type: 'status', ...state }));
@@ -407,6 +418,7 @@ server.listen(PORT, HOST, () => {
     playersOnline: () => mc.online.size,
     busy: () => backups.isRunning() || shuttingDown,
   });
+  autoUpdate.init({ busy: () => backups.isRunning() || shuttingDown });
   // Wurde der Minecraft-Server für ein Update gestoppt? Dann wieder starten.
   if (updater.shouldResumeServer()) {
     mc.log('Update abgeschlossen – Minecraft-Server wird wieder gestartet ...');
@@ -438,6 +450,12 @@ async function shutdown({ restart = false, update = false } = {}) {
     console.log('Fahre Minecraft-Server herunter ...');
     broadcast({ type: 'shutdown', phase: 'stopping' });
     await mc.stop().catch(() => {});
+  }
+  // Ausstehende Mod-Updates jetzt einspielen (Server ist aus) – vor einem Tool-Update
+  try {
+    modCatalog.applyPending();
+  } catch (_) {
+    /* beim nächsten Start erneut */
   }
 
   broadcast({ type: 'shutdown', phase: 'done', serverWasRunning: wasRunning, forced: mc.lastStopForced, restart, update });

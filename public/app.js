@@ -462,6 +462,8 @@ function connectWs() {
       const before = JSON.stringify((catalog || {}).mods || []);
       renderCatalog(msg);
       if (state.currentTab === 'mods' && before !== JSON.stringify(msg.mods)) loadMods();
+    } else if (msg.type === 'auto-update') {
+      renderAutoUpdate(msg);
     } else if (msg.type === 'update') {
       renderUpdate(msg);
     } else if (msg.type === 'shutdown') {
@@ -1673,6 +1675,50 @@ $('#upInstall').onclick = async () => {
 ${running ? 'Der Minecraft-Server wird dafür sicher gestoppt (Welt wird gespeichert) und nach dem Update wieder gestartet.' : 'Das Tool startet danach automatisch neu.'}`)) return;
   try {
     await api('POST', '/api/update/install');
+  } catch (err) {
+    toast(err.message, 'err');
+  }
+};
+
+// ---------------- Automatische Updates (Einstellung) ----------------
+let au = null;
+function fmtMMSS(ms) {
+  const s = Math.max(0, Math.round(ms / 1000));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+}
+function renderAutoUpdate(d) {
+  if (d) au = d;
+  if (!au) return;
+  $('#auEnabled').classList.toggle('on', !!au.enabled);
+  const work = [...au.work.mods.map((m) => `Mod ${m}`), ...(au.work.tool ? [`Servertool ${au.work.tool}`] : [])];
+  let text = '';
+  let cls = 'text-zinc-500';
+  if (!au.enabled) {
+    text = 'Aus – Updates werden nur angezeigt.';
+  } else if (au.running) {
+    text = '⏳ Updates werden gerade installiert …';
+    cls = 'text-sky-300';
+  } else if (!work.length) {
+    text = '✅ An – zurzeit keine Updates.';
+    cls = 'text-emerald-300';
+  } else if (au.installAt) {
+    text = `⏳ Server ist leer – ${work.join(', ')} ${work.length === 1 ? 'wird' : 'werden'} in ${fmtMMSS(au.installAt - Date.now())} installiert.`;
+    cls = 'text-amber-300';
+  } else {
+    text = `🕹 ${work.join(', ')} ${work.length === 1 ? 'wartet' : 'warten'}, bis der Server ${au.emptyMinutes} Minuten leer ist.`;
+    cls = 'text-amber-300';
+  }
+  if (au.lastAction && !au.running) text += ` Zuletzt: ${au.lastAction.text} (${new Date(au.lastAction.at).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })} Uhr).`;
+  $('#auInfo').className = `text-sm mt-2 ${cls}`;
+  $('#auInfo').textContent = text;
+}
+setInterval(() => au && au.installAt && renderAutoUpdate(), 1000);
+$('#auEnabled').onclick = async () => {
+  const turnOn = !(au && au.enabled);
+  if (turnOn && !confirm('Updates automatisch installieren?\n\nSobald der Server 3 Minuten leer ist, werden zuerst Mod-Updates und danach Servertool-Updates installiert. Der Minecraft-Server wird dafür kurz gestoppt und startet danach automatisch wieder.')) return;
+  try {
+    renderAutoUpdate(await api('PUT', '/api/auto-update', { enabled: turnOn }));
+    toast(turnOn ? 'Automatische Updates eingeschaltet.' : 'Automatische Updates ausgeschaltet.', 'ok');
   } catch (err) {
     toast(err.message, 'err');
   }

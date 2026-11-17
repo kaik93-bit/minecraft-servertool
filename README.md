@@ -16,17 +16,25 @@ Beim ersten Start klickst du auf **„📂 Server-Datei öffnen …“** und wä
 
 ## Updates
 
-Das Tool **prüft** regelmäßig, ob es eine neue Version gibt, und zeigt sie an. Es lädt **nichts selbst herunter**: Jedes Update installierst du selbst per Klick.
+Das Tool **prüft** regelmäßig, ob es Updates gibt: **Mods alle 5 Minuten**, das **Servertool alle 10 Minuten**. Gefundene Updates werden angezeigt.
 
-- Gibt es eine neue Version, erscheint eine Meldung und ein Punkt bei **Einstellungen**.
-- Unter **Einstellungen → Updates** siehst du die Änderungen und klickst auf **„Jetzt aktualisieren“**.
-- Läuft der Server, wird er dafür sicher gestoppt (die Welt wird gespeichert) und danach automatisch wieder gestartet.
-- Einstellungen, Spielerlisten, Auto-Neustart-Zeiten und Backups bleiben erhalten.
-- Startet eine neue Version nicht richtig, stellt das Tool automatisch die vorherige wieder her.
+**Updates automatisch installieren** (Einstellungen → Updates, standardmäßig **aus**):
+- **Aus:** Updates werden nur angezeigt. Installiert wird per Klick, unter **Einstellungen → Updates** für das Tool und unter **Mods** für die Mods.
+- **An:** Sobald der Server **3 Minuten leer** ist, werden die Updates eingespielt:
+  1. zuerst alle **Mod-Updates**
+  2. danach das **Servertool**
+  3. danach startet der **Minecraft-Server automatisch** wieder
+
+  Gibt es nur Mod-Updates, wird der Minecraft-Server einmal neu gestartet, damit sie geladen werden. Joint jemand, bevor die 3 Minuten um sind, wird gewartet.
+
+In beiden Fällen gilt:
+- Einstellungen, Welten, Spielerlisten und Backups bleiben erhalten.
+- Alte Mod-Versionen werden in `data/mod-backups` gesichert.
+- Startet eine neue Tool-Version nicht richtig, wird automatisch die vorherige wiederhergestellt.
 
 ## Eigene Mods von GitHub
 
-Im Bereich **Mods** zeigt die Karte **„Meine Mods auf GitHub“** alle Mods aus [kaik93-bit/minecraft-mods](https://github.com/kaik93-bit/minecraft-mods). Das Tool **prüft alle 5 Minuten** auf neue Versionen. Heruntergeladen und installiert wird **nur per Klick**.
+Im Bereich **Mods** zeigt die Karte **„Meine Mods auf GitHub“** alle Mods aus [kaik93-bit/minecraft-mods](https://github.com/kaik93-bit/minecraft-mods). Das Tool **prüft alle 5 Minuten** auf neue Versionen. Installiert wird per Klick oder automatisch, siehe [Updates](#updates).
 
 - **Updates verfügbar**: Mods mit neuer Version stehen oben mit **⬆ Aktualisieren**.
   - Ist der Server aus, wird die neue Version sofort eingespielt.
