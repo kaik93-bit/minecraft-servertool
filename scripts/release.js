@@ -80,7 +80,7 @@ async function buildPackage(version) {
 
   const zip = await buildPackage(version);
   sh('gh', ['release', 'create', `v${version}`, zip, '--title', `Version ${version}`, '--notes', notes]);
-  console.log(`\n✅ Version ${version} veröffentlicht. Installierte Servertools aktualisieren sich automatisch.`);
+  console.log(`\n✅ Version ${version} veröffentlicht. Installierte Servertools zeigen das Update jetzt an.`);
 })().catch((err) => {
   console.error('❌', err.message);
   process.exit(1);

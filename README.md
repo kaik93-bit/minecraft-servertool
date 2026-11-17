@@ -16,25 +16,24 @@ Beim ersten Start klickst du auf **„📂 Server-Datei öffnen …“** und wä
 
 ## Updates
 
-Das Tool aktualisiert sich **von selbst**:
-- Es sucht beim Start und danach regelmäßig nach einer neuen Version (in der Testphase alle 10 Sekunden).
-- Eine neue Version wird im Hintergrund heruntergeladen und installiert, sobald **niemand spielt**.
-- Läuft der Server gerade, wird er dafür sicher gestoppt (die Welt wird gespeichert) und danach automatisch wieder gestartet.
+Das Tool **prüft** regelmäßig, ob es eine neue Version gibt, und zeigt sie an. Es lädt **nichts selbst herunter**: Jedes Update installierst du selbst per Klick.
+
+- Gibt es eine neue Version, erscheint eine Meldung und ein Punkt bei **Einstellungen**.
+- Unter **Einstellungen → Updates** siehst du die Änderungen und klickst auf **„Jetzt aktualisieren“**.
+- Läuft der Server, wird er dafür sicher gestoppt (die Welt wird gespeichert) und danach automatisch wieder gestartet.
 - Einstellungen, Spielerlisten, Auto-Neustart-Zeiten und Backups bleiben erhalten.
 - Startet eine neue Version nicht richtig, stellt das Tool automatisch die vorherige wieder her.
 
-Unter **Einstellungen → Updates** kannst du automatische Updates abschalten, selbst nach Updates suchen oder ein Update sofort installieren.
-
 ## Eigene Mods von GitHub
 
-Im Bereich **Mods** zeigt die Karte **„Meine Mods auf GitHub“** alle Mods aus [kaik93-bit/minecraft-mods](https://github.com/kaik93-bit/minecraft-mods):
-- **Noch nicht installierte** Mods stehen dort mit Beschreibung. Ein Klick auf **Installieren** genügt; aktiv werden sie nach dem nächsten Server-Neustart.
-- Das Tool sucht **alle 5 Minuten** nach neuen Versionen. Installierte Mods zeigen „✓ aktuell“ oder „⬆ Update auf x.y“.
-- **Automatische Updates** (an/aus):
+Im Bereich **Mods** zeigt die Karte **„Meine Mods auf GitHub“** alle Mods aus [kaik93-bit/minecraft-mods](https://github.com/kaik93-bit/minecraft-mods). Das Tool **prüft alle 5 Minuten** auf neue Versionen. Heruntergeladen und installiert wird **nur per Klick**.
+
+- **Updates verfügbar**: Mods mit neuer Version stehen oben mit **⬆ Aktualisieren**.
   - Ist der Server aus, wird die neue Version sofort eingespielt.
-  - Läuft er, wird sie heruntergeladen und beim nächsten Start bzw. Stopp installiert, weil Windows geladene Mods sperrt.
-  - Die alte Version wird in `data/mod-backups` gesichert.
-  - Deaktivierte Mods bleiben deaktiviert.
+  - Läuft er, wird sie heruntergeladen und beim nächsten Start bzw. Stopp eingesetzt, weil Windows geladene Mods sperrt.
+  - Die alte Version wird in `data/mod-backups` gesichert. Deaktivierte Mods bleiben deaktiviert.
+- **Noch nicht installiert**: Mods, die du noch nicht hast, mit Beschreibung und **⬇ Installieren**. Sie sind nach dem nächsten Server-Neustart aktiv.
+- Installierte Mods zeigen „✓ aktuell“ oder „⬆ Update auf x.y“.
 - Andere Mods (nicht aus diesem Katalog) werden nie angefasst.
 
 Bei Mods mit „👥 auch für Spieler“ brauchen die Spieler dieselbe Version im eigenen Minecraft. „🖥 nur Server“-Mods brauchen sie nicht.
@@ -77,7 +76,7 @@ npm install
 npm start                 # mit sichtbaren Logs, dann http://localhost:3000 öffnen
 ```
 
-**Neue Version veröffentlichen.** Alle installierten Tools holen sie sich danach automatisch:
+**Neue Tool-Version veröffentlichen.** Alle installierten Tools zeigen sie danach als Update an:
 
 ```
 npm run release -- 1.2.0 "Neue Funktion X" "Fehler Y behoben"
@@ -94,7 +93,7 @@ Das Skript:
 npm run mod-release -- "..VeinMinex" "Was ist neu"
 ```
 
-Das Skript liest ID, Name und Version aus der `.jar` (bei einem Ordner die neueste aus `build/libs`) und erstellt das Release in `minecraft-mods`. Alle Servertools finden die neue Version innerhalb von 5 Minuten.
+Das Skript liest ID, Name und Version aus der `.jar` (bei einem Ordner die neueste aus `build/libs`) und erstellt das Release in `minecraft-mods`. Alle Servertools zeigen die neue Version innerhalb von 5 Minuten an.
 
 Benötigt sind `git` und die GitHub-CLI (`gh`), eingeloggt. Im Entwicklungsordner (mit `.git`) installiert das Tool selbst keine Updates.
 
