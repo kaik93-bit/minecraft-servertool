@@ -362,14 +362,12 @@
           <h2 class="card-title mb-0">Meine Mods auf GitHub</h2>
           <span id="catStatus" class="text-sm text-zinc-400"></span>
           <div class="ml-auto flex items-center gap-3">
-            <label class="flex items-center gap-2 text-sm">
-              <button type="button" id="catAuto" class="switch" title="Updates eigener Mods automatisch installieren"></button>
-              <span>Updates automatisch</span>
-            </label>
             <button id="catCheck" class="btn btn-ghost btn-sm">🔍 Jetzt prüfen</button>
           </div>
         </div>
         <div id="catPending" class="hidden mt-4 rounded-lg border border-sky-700/60 bg-sky-900/20 px-3 py-2 text-sm text-sky-200"></div>
+        <p class="hint mt-2">Das Tool prüft alle 5 Minuten, ob es neue Versionen gibt. Heruntergeladen und installiert wird nur per Klick.</p>
+        <div id="catUpdates" class="hidden mt-4"></div>
         <h3 class="text-sm font-semibold text-zinc-300 mt-5 mb-3">Noch nicht installiert</h3>
         <div id="catList" class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3"></div>
       </div>
@@ -455,10 +453,6 @@
         <div class="flex items-center gap-3 flex-wrap">
           <h2 class="card-title mb-0">Updates</h2>
           <span id="upVersion" class="status-chip font-mono"></span>
-          <label class="flex items-center gap-2 text-sm ml-auto">
-            <button type="button" id="upAuto" class="switch" title="Updates automatisch installieren"></button>
-            <span>Automatisch installieren</span>
-          </label>
         </div>
         <p id="upText" class="text-sm text-zinc-300 mt-3"></p>
         <pre id="upNotes" class="hidden mt-3 text-xs text-zinc-400 whitespace-pre-wrap font-sans bg-black/20 rounded-lg p-3 max-h-48 overflow-auto"></pre>
@@ -466,7 +460,7 @@
           <button type="button" id="upCheck" class="btn btn-ghost">🔍 Nach Updates suchen</button>
           <button type="button" id="upInstall" class="btn btn-green hidden">⬇ Jetzt aktualisieren</button>
         </div>
-        <p class="hint mt-3">Automatische Updates werden erst installiert, wenn niemand auf dem Server spielt. Läuft der Server, wird er dafür kurz sicher gestoppt und danach wieder gestartet. Deine Einstellungen und Backups bleiben erhalten.</p>
+        <p class="hint mt-3">Das Tool prüft regelmäßig, ob es eine neue Version gibt, lädt aber nichts selbst herunter. Installiert wird nur, wenn du auf „Jetzt aktualisieren“ klickst. Läuft der Server, wird er dafür sicher gestoppt und danach wieder gestartet. Deine Einstellungen und Backups bleiben erhalten.</p>
       </div>
       <form id="settingsForm" class="card space-y-5 max-w-3xl">
         <h2 class="card-title">Konfiguration</h2>

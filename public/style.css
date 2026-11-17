@@ -244,7 +244,8 @@ table thead th { font-size: .7rem; font-weight: 600; text-transform: uppercase; 
 #modTable tr:hover, #backupTable tr:hover, #playerTable tr:hover, #attemptTable tr:hover { background: rgba(255,255,255,.02); }
 #modTable td, #backupTable td { padding: .6rem .5rem .6rem 0; }
 #playerTable td, #attemptTable td { padding: .55rem .5rem .55rem 0; vertical-align: middle; }
-#modTable tr.off td.name { color: var(--faint); text-decoration: line-through; }
+#modTable tr.off td.name { color: var(--faint); }
+#modTable tr.off td.name > div > span:not(.mod-badge), #modTable tr.off td.name > div + div { text-decoration: line-through; }
 
 .dot { display: inline-block; width: .55rem; height: .55rem; border-radius: 9999px; margin-right: .4rem; }
 .tag { display: inline-block; padding: .05rem .45rem; border-radius: 6px; font-size: .68rem; font-weight: 600; margin-right: .25rem; }

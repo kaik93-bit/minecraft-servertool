@@ -1357,7 +1357,6 @@ function modNameCell(m) {
 
 function renderCatalog(d) {
   catalog = d;
-  $('#catAuto').classList.toggle('on', !!d.auto);
   const t = d.checkedAt ? new Date(d.checkedAt).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) : null;
   $('#catStatus').textContent =
     d.status === 'checking' ? 'Prüfe …' : d.status === 'error' ? `⚠ ${d.error}` : t ? `geprüft ${t} Uhr · alle ${d.intervalMin} Min.` : 'noch nicht geprüft';
@@ -1369,6 +1368,20 @@ function renderCatalog(d) {
     $('#catPending').innerHTML = `⏳ ${pend.map((m) => `<b>${esc(m.name)} ${esc(m.pendingVersion)}</b>`).join(', ')} ${pend.length === 1 ? 'ist' : 'sind'} heruntergeladen und ${pend.length === 1 ? 'wird' : 'werden'} beim nächsten Server-Start bzw. sobald der Server gestoppt ist installiert.`;
   }
 
+  const ups = d.mods.filter((m) => m.updateAvailable && !m.pendingVersion);
+  $('#catUpdates').classList.toggle('hidden', !ups.length);
+  $('#catUpdates').innerHTML = ups.length
+    ? `<div class="rounded-lg border border-amber-600/40 bg-amber-900/15 px-3 py-2.5 text-sm">
+        <div class="font-semibold text-amber-200 mb-2">⬆ ${ups.length === 1 ? 'Ein Update' : ups.length + ' Updates'} verfügbar</div>
+        <div class="flex flex-col gap-2">${ups
+          .map(
+            (m) => `<div class="flex flex-wrap items-center gap-2"><span class="text-zinc-200">${esc(m.name)}</span>
+              <span class="font-mono text-xs text-zinc-500">${esc(m.installedVersion)} → ${esc(m.version)}</span>
+              ${m.notes ? `<span class="text-xs text-zinc-400 truncate max-w-md" title="${esc(m.notes)}">${esc(m.notes.split(/\r?\n/)[0])}</span>` : ''}
+              <button class="btn btn-sm btn-amber ml-auto" data-mod-update="${esc(m.id)}" ${m.busy ? 'disabled' : ''}>${m.busy ? '⏳ …' : '⬆ Aktualisieren'}</button></div>`
+          )
+          .join('')}</div></div>`
+    : '';
   const missing = d.mods.filter((m) => !m.installed);
   $('#catList').innerHTML = !d.repo
     ? '<p class="text-sm text-zinc-500">Keine Mod-Quelle eingestellt.</p>'
@@ -1422,14 +1435,6 @@ $('#catCheck').onclick = async () => {
     toast(err.message, 'err');
   }
 };
-$('#catAuto').onclick = async () => {
-  try {
-    renderCatalog(await api('PUT', '/api/mod-updates/settings', { auto: !(catalog && catalog.auto) }));
-  } catch (err) {
-    toast(err.message, 'err');
-  }
-};
-
 $('#modSearch').addEventListener('input', renderMods);
 $('#modFilter').addEventListener('change', renderMods);
 $('#btnReloadMods').onclick = loadMods;
@@ -1612,18 +1617,18 @@ $('#btnEula').onclick = async () => {
 
 // ---------------- Updates ----------------
 let upState = null;
+let notifiedVersion = null; // nur einmal pro Version melden
 function renderUpdate(u) {
   upState = u;
   $('#upVersion').textContent = `Version ${u.version}`;
-  $('#upAuto').classList.toggle('on', !!u.auto);
   const next = u.latest && u.latest.version;
   const texts = {
     idle: 'Noch nicht nach Updates gesucht.',
     checking: 'Suche nach Updates …',
     uptodate: '✅ Du hast die neueste Version.',
-    available: `Version ${next} ist verfügbar.`,
+    available: `⬆ Version ${next} ist verfügbar – klicke auf „Jetzt aktualisieren“.`,
     downloading: `Version ${next} wird heruntergeladen …`,
-    ready: `Version ${next} ist bereit${u.auto ? ' und wird installiert, sobald niemand spielt' : ''}.`,
+    ready: `⬆ Version ${next} ist heruntergeladen – klicke auf „Jetzt aktualisieren“.`,
     installing: `Version ${next} wird installiert …`,
     error: `⚠ ${u.error || 'Fehler bei der Update-Suche.'}`,
   };
@@ -1636,6 +1641,10 @@ function renderUpdate(u) {
   if (showNotes) $('#upNotes').textContent = `Neu in ${next}:\n${u.latest.notes}`;
   $('#upInstall').classList.toggle('hidden', u.devMode || !['available', 'ready'].includes(u.status));
   $('#upCheck').disabled = ['checking', 'downloading', 'installing'].includes(u.status);
+  if (!u.devMode && u.status === 'available' && next && notifiedVersion !== next) {
+    toast(`⬆ Servertool ${next} ist verfügbar – Einstellungen → Updates.`, 'info');
+  }
+  notifiedVersion = ['available', 'ready'].includes(u.status) ? next : null;
   // Hinweis im Menü
   const tab = document.querySelector('.tab[data-tab="settings"] span');
   if (tab) tab.textContent = !u.devMode && ['available', 'ready'].includes(u.status) ? 'Einstellungen •' : 'Einstellungen';
@@ -1648,13 +1657,6 @@ function renderUpdate(u) {
     api('POST', '/api/update/dismiss').catch(() => {});
   }
 }
-$('#upAuto').onclick = async () => {
-  try {
-    renderUpdate(await api('PUT', '/api/update/settings', { auto: !(upState && upState.auto) }));
-  } catch (err) {
-    toast(err.message, 'err');
-  }
-};
 $('#upCheck').onclick = async () => {
   try {
     const u = await api('POST', '/api/update/check');

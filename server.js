@@ -314,16 +314,16 @@ app.get('/api/mod-updates', route(async (req, res) => res.json(modCatalog.status
 app.post('/api/mod-updates/check', route(async (req, res) => res.json(await modCatalog.check({ manual: true }))));
 app.post('/api/mod-updates/:id/update', route(async (req, res) => res.json(await modCatalog.update(req.params.id))));
 app.post('/api/mod-updates/:id/install', route(async (req, res) => res.json(await modCatalog.install(req.params.id))));
-app.put('/api/mod-updates/settings', route(async (req, res) => res.json(modCatalog.setAuto((req.body || {}).auto !== false))));
 
 // ---------------- Updates (GitHub) ----------------
 app.get('/api/update', (req, res) => res.json(updater.status()));
 app.post('/api/update/check', route(async (req, res) => res.json(await updater.check({ manual: true }))));
 app.post('/api/update/install', route(async (req, res) => {
+  // Erst jetzt (Klick durch einen Menschen) herunterladen
   if (updater.status().status === 'available') await updater.download();
+  if (updater.status().status === 'error') throw new Error(updater.status().error);
   res.json(await updater.install());
 }));
-app.put('/api/update/settings', route(async (req, res) => res.json(updater.setAuto((req.body || {}).auto !== false))));
 app.post('/api/update/dismiss', route(async (req, res) => res.json(updater.dismissResult())));
 
 // Neu starten (z.B. nach einem Update): Server sicher stoppen, neue Instanz mit Fenster starten
