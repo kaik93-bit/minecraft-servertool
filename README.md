@@ -17,7 +17,7 @@ Beim ersten Start klickst du auf **„📂 Server-Datei öffnen …“** und wä
 ## Updates
 
 Das Tool aktualisiert sich **von selbst**:
-- Es sucht beim Start und danach alle 3 Stunden nach einer neuen Version.
+- Es sucht beim Start und danach regelmäßig nach einer neuen Version (in der Testphase alle 10 Sekunden).
 - Eine neue Version wird im Hintergrund heruntergeladen und installiert, sobald **niemand spielt**.
 - Läuft der Server gerade, wird er dafür sicher gestoppt (die Welt wird gespeichert) und danach automatisch wieder gestartet.
 - Einstellungen, Spielerlisten, Auto-Neustart-Zeiten und Backups bleiben erhalten.
