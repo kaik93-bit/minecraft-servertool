@@ -1,6 +1,6 @@
 {
   "name": "minecraft-servertool",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Web-Oberfläche zum Steuern eines lokalen Minecraft-Servers (Start/Stop, Konsole, Mods, Backups)",
   "main": "server.js",
   "scripts": {
