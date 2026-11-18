@@ -67,6 +67,7 @@ const { openAppWindow } = require('./lib/appWindow');
 const updater = require('./lib/updater');
 const modCatalog = require('./lib/modCatalog');
 const autoUpdate = require('./lib/autoUpdate');
+require('./lib/chatCommands'); // !ping im Chat
 
 config.load();
 

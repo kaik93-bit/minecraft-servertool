@@ -46,6 +46,16 @@ Im Bereich **Mods** zeigt die Karte **„Meine Mods auf GitHub“** alle Mods au
 
 Bei Mods mit „👥 auch für Spieler“ brauchen die Spieler dieselbe Version im eigenen Minecraft. „🖥 nur Server“-Mods brauchen sie nicht.
 
+## Chat-Befehl `!ping`
+
+Schreibt ein Spieler **`!ping`** in den Chat, antwortet das Tool nur diesem Spieler. Die Antwort enthält:
+- **Letzter Neustart** (Datum und Uhrzeit)
+- **Läuft seit** (Laufzeit)
+- **Server-Reaktion** in ms. Das Tool schickt dafür einen kurzen Testbefehl an den Server und misst die Zeit bis zur Antwort. Grün heißt unter 50 ms, gelb unter 200 ms, rot darüber.
+- **TPS** und der **Ping** des Spielers
+
+Dafür ist keine Mod nötig, es funktioniert über das Tool. Ein echtes `/ping` geht ohne Mod nicht, weil Befehle von Spielern nicht im Server-Log stehen. Pro Spieler geht `!ping` höchstens alle 3 Sekunden.
+
 ## Funktionen
 
 - **Server**: starten, sicher stoppen, neu starten, notfalls hart beenden
@@ -120,6 +130,8 @@ Benötigt sind `git` und die GitHub-CLI (`gh`), eingeloggt. Im Entwicklungsordne
 │   ├── updater.js           # Update-Suche & Download (GitHub-Releases)
 │   ├── modCatalog.js        # eigene Mods von GitHub: Katalog, Updates, Installation
 │   ├── jarinfo.js           # liest Mod-ID/Version aus .jar-Dateien
+│   ├── chatCommands.js      # !ping im Chat
+│   ├── autoUpdate.js        # automatische Updates, wenn der Server leer ist
 │   ├── updateGuard.js       # tauscht Dateien beim Update, stellt bei Fehlern wieder her
 │   └── dialog.js, explorer.js, appWindow.js, config.js
 ├── public/                  # Oberfläche
