@@ -45,10 +45,10 @@ Im Bereich **Mods** zeigt die Karte **„Meine Mods auf GitHub“** alle Mods au
 - Andere Mods (nicht aus diesem Katalog) werden nie angefasst.
 
 **Nur passende Versionen:** Das Tool erkennt die Minecraft-Version und den Loader deines Servers, auch wenn er gerade aus ist:
-- Forge und NeoForge erkennt es aus  bzw. dem -Ordner, Vanilla und Paper aus der .
+- Forge und NeoForge erkennt es aus `run.bat` bzw. dem `libraries`-Ordner, Vanilla und Paper aus der `server.jar`.
 - Fabric-Server werden erst nach dem ersten Start erkannt. Danach merkt sich das Tool die Version.
 
-Angeboten wird je Mod die **neueste Version, die zu deinem Server passt**. Geprüft wird der Versionsbereich aus der Mod, z. B. .
+Angeboten wird je Mod die **neueste Version, die zu deinem Server passt**. Geprüft wird der Versionsbereich aus der Mod, z. B. `[1.21.11,1.22)`.
 - Unpassende Mods (andere Minecraft-Version oder anderer Loader) sind ausgegraut und lassen sich nicht installieren.
 - Gibt es von einer installierten Mod eine neuere Version nur für eine andere Minecraft-Version, steht das als Hinweis dabei.
 - Ist die Server-Version unbekannt, fragt das Tool vor dem Installieren nach. Automatische Updates bleiben dann aus.
