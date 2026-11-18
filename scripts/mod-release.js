@@ -50,7 +50,7 @@ function ensureRepo() {
   }
   if (exists) throw new Error(`${info.name} ${info.version} ist schon veröffentlicht. Bitte mod_version erhöhen und neu bauen.`);
 
-  const meta = { id: info.id, version: info.version, name: info.name, description: info.description, mc: info.mc, loader: info.loader, serverOnly: info.serverOnly };
+  const meta = { id: info.id, version: info.version, name: info.name, description: info.description, mc: info.mc, mcRange: info.mcRange, loader: info.loader, serverOnly: info.serverOnly };
   const notes = notesArr.length ? notesArr.map((n) => `• ${n}`).join('\n') : '';
   const body = [notes, info.description, `<!-- servertool-mod ${JSON.stringify(meta)} -->`].filter(Boolean).join('\n\n');
   gh(['release', 'create', tag, jar, '--repo', REPO, '--title', `${info.name} ${info.version}`, '--notes', body]);

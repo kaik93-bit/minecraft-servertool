@@ -14,7 +14,7 @@ async function api(method, url, body) {
   }
   const res = await fetch(url, opts);
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+  if (!res.ok) throw Object.assign(new Error(data.error || `HTTP ${res.status}`), { status: res.status });
   return data;
 }
 
@@ -1350,7 +1350,8 @@ function modNameCell(m) {
   if (c && c.busy) badge = '<span class="mod-badge">⏳ lädt …</span>';
   else if (c && c.pendingVersion) badge = `<span class="mod-badge info" title="Wird automatisch eingespielt, sobald der Server gestoppt bzw. neu gestartet wird">⏳ ${esc(c.pendingVersion)} beim nächsten Start</span>`;
   else if (c && c.updateAvailable) badge = `<button class="mod-badge update" data-mod-update="${esc(c.id)}" title="${esc(c.notes || '')}">⬆ Update auf ${esc(c.version)}</button>`;
-  else if (c) badge = '<span class="mod-badge ok" title="Aktuellste Version von GitHub">✓ aktuell</span>';
+  else if (c) badge = '<span class="mod-badge ok" title="Neueste passende Version von GitHub">✓ aktuell</span>';
+  if (c && c.newer && !c.updateAvailable) badge += ` <span class="mod-badge" title="Diese Version passt nicht zu deinem Server">${esc(c.newer.version)} nur für ${esc(c.newer.requires)}</span>`;
   const title = m.displayName
     ? `<span class="font-medium text-zinc-100">${esc(m.displayName)}</span> <span class="text-zinc-500 font-mono text-xs">${esc(m.version || '')}</span>`
     : `<span class="font-mono break-all">${esc(m.name)}</span>`;
@@ -1362,6 +1363,11 @@ function renderCatalog(d) {
   const t = d.checkedAt ? new Date(d.checkedAt).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) : null;
   $('#catStatus').textContent =
     d.status === 'checking' ? 'Prüfe …' : d.status === 'error' ? `⚠ ${d.error}` : t ? `geprüft ${t} Uhr · alle ${d.intervalMin} Min.` : 'noch nicht geprüft';
+  const LN = { forge: 'Forge', neoforge: 'NeoForge', fabric: 'Fabric', vanilla: 'Vanilla' };
+  const sv = d.server || {};
+  $('#catServer').innerHTML = sv.mcVersion || sv.loader
+    ? `Dein Server: <b class="text-zinc-200">${esc([LN[sv.loader] || sv.loader, sv.mcVersion && 'MC ' + sv.mcVersion].filter(Boolean).join(' · '))}</b> – es werden nur passende Mod-Versionen angeboten.${sv.loader === 'vanilla' ? ' <span class="text-amber-400">Ohne Forge/NeoForge/Fabric können keine Mods geladen werden.</span>' : ''}`
+    : '<span class="text-amber-400">⚠ Server-Version noch unbekannt – starte den Server einmal, dann werden passende Versionen erkannt.</span>';
   $('#catCheck').disabled = d.status === 'checking';
 
   const pend = d.mods.filter((m) => m.pendingVersion);
@@ -1390,20 +1396,22 @@ function renderCatalog(d) {
     : missing.length
       ? missing
           .map(
-            (m) => `<div class="cat-item">
+            (m) => `<div class="cat-item ${m.compatible === false ? 'incompatible' : ''}">
         <div class="flex items-start gap-2">
           <div class="flex-1 min-w-0">
             <div class="font-semibold text-zinc-100">${esc(m.name)} <span class="text-xs font-mono text-zinc-500">${esc(m.version)}</span></div>
             <div class="flex flex-wrap gap-1.5 mt-1.5">
-              ${m.mc ? `<span class="mod-tag">MC ${esc(m.mc)}</span>` : ''}
-              ${m.loader ? `<span class="mod-tag">${esc(m.loader === 'neoforge' ? 'NeoForge' : m.loader === 'fabric' ? 'Fabric' : 'Forge')}</span>` : ''}
+              ${m.requires ? m.requires.split(' · ').map((x) => `<span class="mod-tag">${esc(x)}</span>`).join('') : ''}
               <span class="mod-tag" title="${m.serverOnly ? 'Spieler können ohne diese Mod joinen' : 'Spieler brauchen diese Mod ebenfalls'}">${m.serverOnly ? '🖥 nur Server' : '👥 auch für Spieler'}</span>
             </div>
           </div>
         </div>
         <p class="text-xs text-zinc-400 mt-2 flex-1">${esc(m.description || m.notes || '')}</p>
-        ${m.compatible ? '' : `<p class="text-xs text-amber-400 mt-2">⚠ Passt evtl. nicht zu deinem Server (${esc([d.server.loader, d.server.mcVersion].filter(Boolean).join(' '))}).</p>`}
-        <button class="btn btn-green btn-sm mt-3 self-start" data-mod-install="${esc(m.id)}" ${m.busy ? 'disabled' : ''}>${m.busy ? '⏳ Wird installiert …' : '⬇ Installieren'}</button>
+        ${m.compatible === false ? `<p class="text-xs text-red-300 mt-2">⛔ Passt nicht: ${esc(m.name)} ${esc(m.compatReason || '')}.</p>` : ''}
+        ${m.compatible === null ? `<p class="text-xs text-amber-400 mt-2">⚠ ${esc(m.compatReason || 'Server-Version unbekannt')} – vor dem Installieren wird nachgefragt.</p>` : ''}
+        ${m.compatible === false
+          ? '<button class="btn btn-ghost btn-sm mt-3 self-start" disabled>Nicht installierbar</button>'
+          : `<button class="btn btn-green btn-sm mt-3 self-start" data-mod-install="${esc(m.id)}" ${m.busy ? 'disabled' : ''}>${m.busy ? '⏳ Wird installiert …' : '⬇ Installieren'}</button>`}
       </div>`
           )
           .join('')
@@ -1417,8 +1425,15 @@ document.addEventListener('click', async (e) => {
   if (!inst && !upd) return;
   const id = (inst || upd).dataset.modInstall || (inst || upd).dataset.modUpdate;
   (inst || upd).disabled = true;
+  const url = `/api/mod-updates/${encodeURIComponent(id)}/${inst ? 'install' : 'update'}`;
   try {
-    const r = await api('POST', `/api/mod-updates/${encodeURIComponent(id)}/${inst ? 'install' : 'update'}`);
+    let r;
+    try {
+      r = await api('POST', url);
+    } catch (err) {
+      if (err.status !== 428 || !confirm(err.message)) throw err;
+      r = await api('POST', url, { force: true });
+    }
     renderCatalog(r);
     const m = r.mods.find((x) => x.id === id);
     if (inst) toast(`${m.name} installiert.${r.restartRequired ? ' Aktiv nach dem nächsten Server-Neustart.' : ''}`, 'ok');

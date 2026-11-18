@@ -318,8 +318,8 @@ app.put('/api/auto-update', route(async (req, res) => res.json(autoUpdate.setEna
 // ---------------- Eigene Mods von GitHub ----------------
 app.get('/api/mod-updates', route(async (req, res) => res.json(modCatalog.status())));
 app.post('/api/mod-updates/check', route(async (req, res) => res.json(await modCatalog.check({ manual: true }))));
-app.post('/api/mod-updates/:id/update', route(async (req, res) => res.json(await modCatalog.update(req.params.id))));
-app.post('/api/mod-updates/:id/install', route(async (req, res) => res.json(await modCatalog.install(req.params.id))));
+app.post('/api/mod-updates/:id/update', route(async (req, res) => res.json(await modCatalog.update(req.params.id, { force: !!(req.body && req.body.force) }))));
+app.post('/api/mod-updates/:id/install', route(async (req, res) => res.json(await modCatalog.install(req.params.id, { force: !!(req.body && req.body.force) }))));
 
 // ---------------- Updates (GitHub) ----------------
 app.get('/api/update', (req, res) => res.json(updater.status()));
