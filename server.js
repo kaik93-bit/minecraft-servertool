@@ -60,6 +60,7 @@ const serverSettings = require('./lib/serverSettings');
 const gamerules = require('./lib/gamerules');
 const daylength = require('./lib/daylength');
 const perf = require('./lib/perf');
+const network = require('./lib/network');
 const autorestart = require('./lib/autorestart');
 const dialog = require('./lib/dialog');
 const { openFolder } = require('./lib/explorer');
@@ -170,6 +171,8 @@ app.put('/api/gamerules/:key', route(async (req, res) => {
 }));
 
 app.get('/api/perf', (req, res) => res.json(perf.getState()));
+
+app.get('/api/network', route(async (req, res) => res.json(await network.status({ force: req.query.refresh === '1' }))));
 
 app.get('/api/autorestart', route(async (req, res) => res.json(autorestart.status())));
 app.put('/api/autorestart', route(async (req, res) => res.json(autorestart.save(req.body || {}))));

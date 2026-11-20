@@ -108,6 +108,14 @@
               <span>Laufzeit: <span id="infoUptime" class="text-zinc-200">–</span></span>
             </div>
           </div>
+          <!-- Adressen zum Verbinden -->
+          <div id="netBox" class="mt-4 rounded border border-zinc-800 bg-zinc-900 px-3 py-2.5 text-sm">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="font-medium">🔌 So verbinden sich Spieler</span>
+              <button id="netRefresh" class="btn btn-ghost btn-sm ml-auto" title="Adressen neu ermitteln">⟳</button>
+            </div>
+            <div id="netList" class="space-y-1.5 text-zinc-400">Wird ermittelt …</div>
+          </div>
           <!-- Auto-Neustart-Info -->
           <div id="arDash" class="hidden mt-4 flex flex-wrap items-center gap-2 text-sm rounded border border-zinc-800 bg-zinc-900 px-3 py-2">
             <span id="arDashText"></span>

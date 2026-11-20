@@ -165,6 +165,7 @@ function applyStatus(s) {
   state.lastOnline = players;
   updatePlayerModalLive(players);
   if (statusChanged && state.currentTab === 'server') debounce('serverSettings', loadServerSettings, 600);
+  if (statusChanged) debounce('network', loadNetwork, 1000);
 
   // Spieler-Tab aktuell halten (Ping, Online-Status)
   if (state.currentTab === 'players') {
@@ -1739,8 +1740,65 @@ $('#auEnabled').onclick = async () => {
   }
 };
 
+// ---------------- Verbindungs-Adressen ----------------
+let netData = null;
+function netRow(label, addr, hint, extraCls = '') {
+  return `<div class="flex flex-wrap items-center gap-x-2 gap-y-1 ${extraCls}">
+    <span class="w-24 shrink-0">${esc(label)}</span>
+    <span class="chip px-2.5 text-zinc-100 select-all">${esc(addr)}</span>
+    <button class="btn btn-ghost btn-sm" data-copy="${esc(addr)}" title="In die Zwischenablage kopieren">📋 Kopieren</button>
+    ${hint ? `<span class="text-xs text-zinc-500 basis-full sm:basis-auto">${esc(hint)}</span>` : ''}
+  </div>`;
+}
+function renderNetwork(n) {
+  netData = n;
+  const withPort = (ip) => (n.defaultPort ? ip : `${ip}:${n.port}`);
+  const rows = [];
+  if (n.bound) {
+    rows.push(netRow('Fest gesetzt', withPort(n.bound), 'server-ip in den Server-Einstellungen: der Server ist nur unter dieser Adresse erreichbar.'));
+  } else {
+    rows.push(netRow('Dieser PC', withPort('localhost'), 'Wenn du auf demselben PC spielst.'));
+    const real = n.lan.filter((a) => !a.virtual);
+    const lan = real.length ? real : n.lan;
+    for (const a of lan) rows.push(netRow('Heimnetz', withPort(a.ip), lan.length > 1 ? `Netzwerk: ${a.name}` : 'Für Spieler im selben WLAN / Netzwerk.'));
+    if (!lan.length) rows.push('<div>Heimnetz: keine Netzwerkverbindung gefunden.</div>');
+  }
+  if (n.public.ip) {
+    rows.push(netRow('Internet', withPort(n.public.ip),
+      `Für Freunde außerhalb – nur wenn im Router Port ${n.port} (TCP) an diesen PC weitergeleitet ist. Die Adresse kann sich ändern (z. B. nach Router-Neustart).`));
+  } else if (n.public.error) {
+    rows.push(`<div>Internet: ${esc(n.public.error)}</div>`);
+  }
+  $('#netList').innerHTML = rows.join('');
+}
+async function loadNetwork(refresh = false) {
+  try {
+    renderNetwork(await api('GET', '/api/network' + (refresh ? '?refresh=1' : '')));
+  } catch (err) {
+    if (!netData) $('#netList').textContent = 'Adressen konnten nicht ermittelt werden.';
+  }
+}
+$('#netRefresh').onclick = () => loadNetwork(true);
+$('#netList').addEventListener('click', async (ev) => {
+  const btn = ev.target.closest('[data-copy]');
+  if (!btn) return;
+  const text = btn.dataset.copy;
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch (_) {
+    const ta = Object.assign(document.createElement('textarea'), { value: text });
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    ta.remove();
+  }
+  toast(`📋 ${text} kopiert`, 'ok');
+});
+setInterval(() => loadNetwork(), 5 * 60 * 1000);
+
 // ---------------- Init ----------------
 connectWs();
+loadNetwork();
 checkToolVersion();
 loadServerInfo();
 let initialTab = 'dashboard';
